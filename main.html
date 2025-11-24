@@ -61,7 +61,6 @@
       background: #fff;
     }
 
-    /* Small responsiveness */
     @media (max-width:480px){
       .code { width:48px; height:48px; font-size:20px; gap:12px; }
     }
@@ -83,52 +82,44 @@
   </div>
 
   <script>
-    // grab inputs
     const inputs = Array.from(document.querySelectorAll('.code'));
 
-    // focus first input on load
     window.addEventListener('load', () => {
       if (inputs.length) inputs[0].focus();
     });
 
     inputs.forEach((input, index) => {
-      // sanitize input: only allow single digit, keep last typed digit (handles paste or fast typing)
-      input.addEventListener('input', (e) => {
+      input.addEventListener('input', () => {
         const raw = input.value || '';
-        // keep only digits and take last entered digit
+        // keep last digit only
         const filtered = raw.replace(/\D/g, '').slice(-1);
         input.value = filtered;
 
+        // Move forward reliably after the browser updates input value.
         if (filtered !== '') {
-          // move focus to next input if exists
           const next = inputs[index + 1];
-          if (next) next.focus();
+          // schedule focus on next on next tick to avoid race with programmatic typing
+          setTimeout(() => {
+            if (next) next.focus();
+          }, 0);
         }
       });
 
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace') {
-          // Prevent default to enforce our behavior reliably across browsers
           e.preventDefault();
-
           const currentValue = input.value;
-
           if (currentValue !== '') {
-            // If current field has a value: clear it and move focus to previous
+            // clear current and move to previous
             input.value = '';
-            if (index > 0) {
-              inputs[index - 1].focus();
-            } else {
-              // stay on first if index==0
-              input.focus();
-            }
+            if (index > 0) inputs[index - 1].focus();
+            else input.focus();
           } else {
-            // current is empty: move to previous and clear it
+            // current empty -> clear previous and focus it
             if (index > 0) {
               inputs[index - 1].value = '';
               inputs[index - 1].focus();
             } else {
-              // already at first, nothing to do
               input.focus();
             }
           }
@@ -138,14 +129,10 @@
         } else if (e.key === 'ArrowRight') {
           e.preventDefault();
           if (index < inputs.length - 1) inputs[index + 1].focus();
-        } else {
-          // allow numeric keys; ignore others — but do not prevent default here because input event handles sanitization
         }
       });
 
-      // support click focus selecting the existing value (nice UX)
       input.addEventListener('focus', () => {
-        // small timeout so if keyboard on mobile is opening the value remains selected
         setTimeout(() => input.select(), 0);
       });
     });

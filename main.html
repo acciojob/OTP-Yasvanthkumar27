@@ -1,105 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTP Entry</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OTP Entry</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f3f3f3;
-        }
+    .container {
+      width: 720px;
+      max-width: 95%;
+      background: #fff;
+      padding: 36px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      text-align: center;
+    }
 
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 420px;
-            text-align: center;
-        }
+    #verification_heading {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
 
-        #verification_heading {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
+    #verification_subtext {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
 
-        #verification_subtext {
-            color: gray;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
+    .code-container {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      margin: 22px 0;
+    }
 
-        .code-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
+    .code {
+      width: 64px;
+      height: 64px;
+      font-size: 28px;
+      text-align: center;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fafafa;
+    }
 
-        .code {
-            width: 50px;
-            height: 55px;
-            font-size: 26px;
-            text-align: center;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
+    .code:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+      background: #fff;
+    }
 
-        .code:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-    </style>
+    /* Small responsiveness */
+    @media (max-width:480px){
+      .code { width:48px; height:48px; font-size:20px; gap:12px; }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <div id="verification_heading">Verify Your Account</div>
+    <div id="verification_subtext">We emailed you the six digit code. Enter the code below to confirm your email address.</div>
 
-    <div class="container">
-        <div id="verification_heading">Verify Your Account</div>
-        <div id="verification_subtext">We emailed you the six digit code. Enter the code below.</div>
-
-        <div class="code-container">
-            <input type="text" maxlength="1" class="code">
-            <input type="text" maxlength="1" class="code">
-            <input type="text" maxlength="1" class="code">
-            <input type="text" maxlength="1" class="code">
-            <input type="text" maxlength="1" class="code">
-            <input type="text" maxlength="1" class="code">
-        </div>
+    <div class="code-container">
+      <input id="code-1" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
+      <input id="code-2" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
+      <input id="code-3" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
+      <input id="code-4" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
+      <input id="code-5" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
+      <input id="code-6" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="1" type="text" />
     </div>
+  </div>
 
-    <script>
-        const inputs = document.querySelectorAll(".code");
+  <script>
+    // grab inputs
+    const inputs = Array.from(document.querySelectorAll('.code'));
 
-        inputs[0].focus();
+    // focus first input on load
+    window.addEventListener('load', () => {
+      if (inputs.length) inputs[0].focus();
+    });
 
-        inputs.forEach((input, index) => {
-            input.addEventListener("input", () => {
-                if (input.value !== "") {
-                    if (index < inputs.length - 1) {
-                        inputs[index + 1].focus(); // move forward
-                    }
-                }
-            });
+    inputs.forEach((input, index) => {
+      // sanitize input: only allow single digit, keep last typed digit (handles paste or fast typing)
+      input.addEventListener('input', (e) => {
+        const raw = input.value || '';
+        // keep only digits and take last entered digit
+        const filtered = raw.replace(/\D/g, '').slice(-1);
+        input.value = filtered;
 
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Backspace") {
-                    if (input.value === "") {
-                        if (index > 0) {
-                            inputs[index - 1].focus(); // move backward
-                            inputs[index - 1].value = ""; // delete previous
-                        }
-                    }
-                }
-            });
-        });
-    </script>
+        if (filtered !== '') {
+          // move focus to next input if exists
+          const next = inputs[index + 1];
+          if (next) next.focus();
+        }
+      });
 
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          // Prevent default to enforce our behavior reliably across browsers
+          e.preventDefault();
+
+          const currentValue = input.value;
+
+          if (currentValue !== '') {
+            // If current field has a value: clear it and move focus to previous
+            input.value = '';
+            if (index > 0) {
+              inputs[index - 1].focus();
+            } else {
+              // stay on first if index==0
+              input.focus();
+            }
+          } else {
+            // current is empty: move to previous and clear it
+            if (index > 0) {
+              inputs[index - 1].value = '';
+              inputs[index - 1].focus();
+            } else {
+              // already at first, nothing to do
+              input.focus();
+            }
+          }
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (index > 0) inputs[index - 1].focus();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (index < inputs.length - 1) inputs[index + 1].focus();
+        } else {
+          // allow numeric keys; ignore others — but do not prevent default here because input event handles sanitization
+        }
+      });
+
+      // support click focus selecting the existing value (nice UX)
+      input.addEventListener('focus', () => {
+        // small timeout so if keyboard on mobile is opening the value remains selected
+        setTimeout(() => input.select(), 0);
+      });
+    });
+  </script>
 </body>
 </html>
